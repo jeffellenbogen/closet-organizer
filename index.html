@@ -1,0 +1,1098 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E9EDF0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171C21" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Closet">
+<title>Closet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Bodoni+Moda:wght@500;600&display=swap">
+<style>
+:root {
+  --wall: #E9EDF0;
+  --surface: #FFFFFF;
+  --ink: #1E2830;
+  --muted: #66727C;
+  --line: #D3D9DE;
+  --chip: #DCE2E7;
+  --brass: #A9843A;
+  --wire: #8A949C;
+  --danger: #9A3B3B;
+  --frame: #C3CBD2;
+  --bezel: #1E2830;
+  --display: "Bodoni Moda", Didot, "Bodoni 72", Georgia, serif;
+  --ui: "Albert Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --wall: #171C21;
+    --surface: #212931;
+    --ink: #E6EAED;
+    --muted: #97A2AB;
+    --line: #313C46;
+    --chip: #29323A;
+    --brass: #C9A55A;
+    --wire: #6F7A83;
+    --danger: #D47A7A;
+    --frame: #0C0F12;
+    --bezel: #2A333B;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--frame);
+  color: var(--ink);
+  font: 400 15px/1.45 var(--ui);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; border-radius: 6px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Phone shell: full screen on a phone, framed on a larger screen */
+.phone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--wall);
+}
+@media (min-width: 600px) and (min-height: 700px) {
+  body { display: grid; place-items: center; min-height: 100vh; padding: 32px 0; }
+  .phone {
+    width: 390px;
+    height: min(844px, calc(100vh - 64px));
+    border-radius: 48px;
+    box-shadow: 0 0 0 11px var(--bezel), 0 40px 80px -20px rgba(15, 22, 28, .45);
+  }
+}
+.screens { position: relative; flex: 1; min-height: 0; }
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: calc(env(safe-area-inset-top) + 28px) 0 32px;
+}
+
+/* Screen header */
+.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 0 20px; }
+.title { margin: 0; font: 500 46px/0.95 var(--display); letter-spacing: -0.015em; }
+.sub { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px 0 12px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--ink);
+  color: var(--wall);
+  font-size: 14px;
+  font-weight: 600;
+}
+.btn-add svg { width: 18px; height: 18px; }
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  margin: 20px 20px 0;
+  padding: 0 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+}
+.search:focus-within { border-color: var(--brass); }
+.search svg { flex: none; width: 18px; height: 18px; }
+.search input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; color: var(--ink); font-size: 16px; }
+
+.chips { display: flex; gap: 8px; padding: 14px 20px 4px; overflow-x: auto; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chips.wrap { flex-wrap: wrap; padding: 0; overflow: visible; }
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 17px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--wall); }
+.now-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brass); }
+
+/* Rails: hanging rod for clothes, shelf for shoes and accessories */
+.rail { margin-top: 26px; }
+.rail-head { display: flex; align-items: baseline; gap: 8px; padding: 0 20px 10px; }
+.rail-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.rail-head .n { color: var(--muted); font-size: 14px; }
+.rail-scroll { overflow-x: auto; scrollbar-width: none; }
+.rail-scroll::-webkit-scrollbar { display: none; }
+.rail-items {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  padding: 0 12px;
+  background-repeat: no-repeat;
+}
+.rail--hang .rail-items {
+  background-image: linear-gradient(var(--brass), var(--brass));
+  background-size: 100% 3px;
+  background-position: 0 2px;
+}
+.rail--shelf .rail-items {
+  background-image: linear-gradient(var(--brass), var(--brass)), linear-gradient(rgba(15, 22, 28, .12), rgba(15, 22, 28, 0));
+  background-size: 100% 5px, 100% 10px;
+  background-position: 0 98px, 0 103px;
+}
+.piece { display: flex; flex: none; flex-direction: column; align-items: center; justify-content: flex-start; width: 96px; padding: 0 6px 4px; border: 0; background: none; text-align: center; }
+.piece .art { display: flex; justify-content: center; height: 100px; }
+.piece .name { display: block; margin-top: 10px; font-size: 13px; line-height: 1.25; }
+.rail--shelf .piece .name { margin-top: 16px; }
+
+/* Garment drawings */
+.g { display: block; overflow: visible; transform-origin: 50% 3%; }
+.g .body { fill: var(--c); stroke: color-mix(in srgb, var(--c) 55%, var(--ink)); stroke-width: 1.6; stroke-linejoin: round; }
+.g .detail { fill: none; stroke: color-mix(in srgb, var(--c) 55%, var(--ink)); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+.g .hanger { fill: none; stroke: var(--wire); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.swing { animation: swing .7s cubic-bezier(.3, .7, .4, 1); }
+@keyframes swing {
+  25% { transform: rotate(7deg); }
+  55% { transform: rotate(-4deg); }
+  80% { transform: rotate(1.5deg); }
+}
+
+.empty { margin: 48px 20px; text-align: center; color: var(--muted); }
+.empty p { margin: 0 0 14px; }
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 36px 20px 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.link-btn { padding: 6px 0; border: 0; background: none; color: var(--muted); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Buttons */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 50px;
+  border: 0;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.btn + .btn { margin-top: 10px; }
+.btn.primary { background: var(--ink); color: var(--wall); }
+.btn.secondary { background: var(--chip); color: var(--ink); }
+.btn.quiet { background: none; color: var(--danger); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.small { width: auto; height: 36px; padding: 0 14px; border-radius: 18px; font-size: 14px; }
+.empty .btn.small { display: inline-flex; }
+.icon-btn { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 18px; background: none; color: var(--muted); }
+.icon-btn svg { width: 20px; height: 20px; }
+
+/* Bottom sheet */
+.scrim { position: absolute; inset: 0; z-index: 20; background: rgba(15, 22, 28, .42); opacity: 0; transition: opacity .25s; }
+.scrim.open { opacity: 1; }
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  max-height: 90%;
+  overflow-y: auto;
+  padding: 10px 20px calc(env(safe-area-inset-bottom) + 24px);
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.2, .8, .2, 1);
+}
+.sheet.open { transform: none; }
+.grabber { width: 40px; height: 5px; margin: 0 auto 8px; border-radius: 3px; background: var(--line); }
+.sheet-close { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 18px; background: var(--chip); }
+.sheet-close svg { width: 18px; height: 18px; }
+
+.detail-art { display: flex; justify-content: center; align-items: center; height: 160px; padding-top: 8px; }
+.detail-name { margin: 14px 0 0; font: 500 30px/1.1 var(--display); text-align: center; }
+.detail-kind { margin: 6px 0 0; color: var(--muted); text-align: center; }
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 22px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.facts div { padding: 14px 4px; text-align: center; }
+.facts div + div { border-left: 1px solid var(--line); }
+.facts dt { color: var(--muted); font-size: 12.5px; }
+.facts dd { margin: 4px 0 0; font-size: 14.5px; font-weight: 600; }
+
+.sheet-title { margin: 6px 0 0; font: 500 30px/1.1 var(--display); }
+.add-preview { display: flex; justify-content: center; height: 120px; margin: 14px 0 4px; background-repeat: no-repeat; }
+.add-preview.is-hung { background-image: linear-gradient(var(--brass), var(--brass)); background-size: 170px 3px; background-position: center 2px; }
+.add-preview.is-shelf { background-image: linear-gradient(var(--brass), var(--brass)); background-size: 170px 5px; background-position: center 118px; height: 124px; }
+.field { display: block; margin-top: 16px; }
+.field span, fieldset legend { display: block; margin-bottom: 8px; padding: 0; font-size: 13.5px; font-weight: 600; }
+.field input { width: 100%; height: 46px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--wall); font-size: 16px; }
+.field input:focus { outline: none; border-color: var(--brass); }
+fieldset { min-width: 0; margin: 18px 0 0; padding: 0; border: 0; }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 10px; }
+.swatch { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(15, 22, 28, .18); }
+.swatch[aria-pressed="true"] { box-shadow: inset 0 0 0 1px rgba(15, 22, 28, .18), 0 0 0 2px var(--surface), 0 0 0 4px var(--ink); }
+.form-error { margin: 18px 0 0; color: var(--danger); font-size: 14px; }
+.sheet .btn.primary { margin-top: 22px; }
+
+/* Outfits */
+.pick { margin: 22px 20px 0; padding: 22px 16px 16px; background: var(--surface); border-radius: 22px; }
+.lay { display: flex; justify-content: center; align-items: center; gap: 6px; min-height: 270px; }
+.lay-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.lay-piece { padding: 2px; border: 0; border-radius: 10px; background: none; }
+.lay-empty { max-width: 240px; margin: 0; color: var(--muted); text-align: center; }
+.pick-names { margin: 14px 0 0; color: var(--muted); font-size: 13.5px; text-align: center; }
+.pick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.pick-actions .btn + .btn { margin-top: 0; }
+.dealt { animation: dealt .35s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes dealt { from { opacity: 0; transform: translateY(8px); } }
+
+.section-h { margin: 32px 20px 4px; font-size: 16px; font-weight: 600; }
+.list { margin: 0; padding: 0 20px; list-style: none; }
+.list li { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.list-empty { margin: 8px 20px; color: var(--muted); }
+.mini { display: flex; align-items: flex-end; gap: 4px; }
+.thumb { display: grid; place-items: center; flex: none; width: 50px; height: 50px; border-radius: 14px; background: var(--surface); }
+.row-actions .btn.small { padding: 0 12px; }
+.row-text { flex: 1; min-width: 0; }
+.row-title { display: block; font-size: 14.5px; font-weight: 600; line-height: 1.3; }
+.row-sub { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
+.row-actions { display: flex; flex: none; align-items: center; gap: 6px; }
+
+.bag-note { display: flex; align-items: center; gap: 10px; margin: 18px 20px 0; padding: 12px 14px; border-radius: 14px; background: var(--surface); font-size: 14px; }
+.bag-note svg { flex: none; width: 22px; height: 22px; color: var(--brass); }
+
+/* Tab bar */
+.tabbar { display: flex; flex: none; padding: 6px 8px calc(env(safe-area-inset-bottom) + 6px); background: var(--surface); border-top: 1px solid var(--line); }
+.tab {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 54px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.tab svg { width: 26px; height: 26px; }
+.tab[aria-current="page"] { color: var(--ink); }
+.tab[aria-current="page"] svg { color: var(--brass); }
+.badge {
+  position: absolute;
+  top: 3px;
+  left: calc(50% + 7px);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--ink);
+  color: var(--wall);
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 84px);
+  z-index: 30;
+  max-width: calc(100% - 40px);
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--wall);
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 12px);
+  transition: opacity .2s, transform .2s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <main class="screens" id="screens">
+
+    <section class="screen" data-screen="closet" aria-labelledby="closetTitle">
+      <header class="top">
+        <div>
+          <h1 class="title" id="closetTitle">Closet</h1>
+          <p class="sub" id="closetCount"></p>
+        </div>
+        <button class="btn-add" id="addBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Add
+        </button>
+      </header>
+      <label class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+        <span class="visually-hidden">Search your closet</span>
+        <input id="search" type="search" placeholder="Search by name or color" autocomplete="off">
+      </label>
+      <div class="chips" id="seasonChips" role="group" aria-label="Season"></div>
+      <div id="rails"></div>
+      <p class="foot"><span id="versionLabel"></span><button class="link-btn" id="resetBtn" type="button">Reset demo</button></p>
+    </section>
+
+    <section class="screen" data-screen="outfits" aria-labelledby="outfitsTitle" hidden>
+      <header class="top">
+        <div>
+          <h1 class="title" id="outfitsTitle">Outfits</h1>
+          <p class="sub" id="outfitsSub"></p>
+        </div>
+      </header>
+      <div class="pick">
+        <div class="lay" id="lay"></div>
+        <p class="pick-names" id="pickNames"></p>
+        <div class="pick-actions">
+          <button class="btn secondary" id="shuffleBtn" type="button">Shuffle</button>
+          <button class="btn primary" id="saveOutfitBtn" type="button">Save outfit</button>
+        </div>
+      </div>
+      <h2 class="section-h">Saved outfits</h2>
+      <ul class="list" id="outfitList"></ul>
+    </section>
+
+    <section class="screen" data-screen="unworn" aria-labelledby="unwornTitle" hidden>
+      <header class="top">
+        <div>
+          <h1 class="title" id="unwornTitle">Unworn</h1>
+          <p class="sub">Not worn in the last 3 months</p>
+        </div>
+      </header>
+      <div class="bag-note" id="bagNote" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+        <span id="bagText"></span>
+      </div>
+      <ul class="list" id="unwornList"></ul>
+    </section>
+
+  </main>
+
+  <nav class="tabbar" id="tabbar" aria-label="Sections">
+    <button class="tab" data-tab="closet" type="button" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5.5a2 2 0 1 1 2 2V9"/><path d="M12 9 3 16h18z"/></svg>
+      Closet
+    </button>
+    <button class="tab" data-tab="outfits" type="button" aria-current="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 4 3.5 6.8l1.8 4 2-1V20h9.4V9.8l2 1 1.8-4L15.5 4c-.8 1.8-6.2 1.8-7 0z"/></svg>
+      Outfits
+    </button>
+    <button class="tab" data-tab="unworn" type="button" aria-current="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+      Unworn
+      <span class="badge" id="unwornBadge" hidden></span>
+    </button>
+  </nav>
+
+  <div class="scrim" id="scrim" hidden></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden>
+    <div class="grabber" aria-hidden="true"></div>
+    <button class="sheet-close" id="sheetClose" type="button" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <div id="sheetBody"></div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+const VERSION = '0.1.0';
+const DAY = 864e5;
+const STORE_KEY = 'closet-mockup';
+const UNWORN_DAYS = 90;
+const SEASONS = ['Spring', 'Summer', 'Fall', 'Winter'];
+
+// Listed light to dark so each rail reads as a color-sorted closet
+const COLORS = {
+  white:    { name: 'White',        hex: '#F3F2EE' },
+  cream:    { name: 'Cream',        hex: '#E4D8BC' },
+  blush:    { name: 'Blush',        hex: '#E2B3A8' },
+  khaki:    { name: 'Khaki',        hex: '#BFA678' },
+  mustard:  { name: 'Mustard',      hex: '#C99A33' },
+  rust:     { name: 'Rust',         hex: '#A5532F' },
+  burgundy: { name: 'Burgundy',     hex: '#6E2734' },
+  plum:     { name: 'Plum',         hex: '#5B3A5F' },
+  sky:      { name: 'Sky blue',     hex: '#9DBAD5' },
+  denim:    { name: 'Denim',        hex: '#4C6C91' },
+  indigo:   { name: 'Indigo',       hex: '#2E4161' },
+  navy:     { name: 'Navy',         hex: '#22324F' },
+  forest:   { name: 'Forest green', hex: '#2E5A45' },
+  olive:    { name: 'Olive',        hex: '#6A6A3A' },
+  brown:    { name: 'Brown',        hex: '#6B4732' },
+  gray:     { name: 'Gray',         hex: '#8C949A' },
+  black:    { name: 'Black',        hex: '#24272B' },
+};
+const COLOR_ORDER = Object.keys(COLORS);
+
+// Garment shapes on a 100x120 canvas. `box` crops the shape when it's shown off the hanger.
+const KINDS = {
+  tee:     { label: 'T-shirt',   box: '4 30 92 88',  d: 'M34 32L16 40L6 60L20 66L27 54V116H73V54L80 66L94 60L84 40L66 32C61 40 39 40 34 32Z' },
+  shirt:   { label: 'Button-up', box: '8 30 84 88',  d: 'M34 32L18 40L10 108L23 110L28 60V116H72V60L77 110L90 108L82 40L66 32L50 46Z', x: 'M50 46V116M34 32L39 44L50 46M66 32L61 44L50 46' },
+  sweater: { label: 'Sweater',   box: '8 30 84 88',  d: 'M34 32L18 40L10 106L23 108L28 62V116H72V62L77 108L90 106L82 40L66 32C61 39 39 39 34 32Z', x: 'M28 109H72M11 99L23.6 100.6M89 99L76.4 100.6' },
+  jacket:  { label: 'Jacket',    box: '6 30 88 90',  d: 'M34 32L16 40L8 110L22 112L27 62V118H73V62L78 112L92 110L84 40L66 32L50 62Z', x: 'M50 62V118M34 32L40 52L50 62M66 32L60 52L50 62M33 96H43M57 96H67' },
+  dress:   { label: 'Dress',     box: '18 30 64 88', d: 'M38 32L34 38L37 56L20 116H80L63 56L66 38L62 32C58 40 42 40 38 32Z', x: 'M37 56H63' },
+  pants:   { label: 'Pants',     box: '24 29 52 91', clip: true, d: 'M30 31H70L74 118H55L50 62L45 118H26Z', x: 'M30 38H70M50 38V50' },
+  shorts:  { label: 'Shorts',    box: '20 29 60 59', clip: true, d: 'M28 31H72L78 86H55L50 62L45 86H22Z', x: 'M28 38H72' },
+  skirt:   { label: 'Skirt',     box: '16 29 68 86', clip: true, d: 'M34 31H66L82 108C62 113 38 113 18 108Z', x: 'M34 38H66M45 38L41 111M55 38L59 111' },
+  sneaker: { label: 'Sneakers',  box: '6 88 90 32',  d: 'M8 118V100C8 94 12 90 18 90H36C42 98 52 101 62 102L84 106C92 108 94 112 94 118Z', x: 'M8 112H94M31 91L35 99M39 95L43 101' },
+  boot:    { label: 'Boots',     box: '20 60 76 60', d: 'M22 62H50V100L80 104C90 106 94 110 94 118H22Z', x: 'M22 112H94M22 70H50' },
+  bag:     { label: 'Bag',       box: '10 50 80 70', d: 'M18 76H82L88 118H12Z', x: 'M34 76C34 54 66 54 66 76' },
+  hat:     { label: 'Hat',       box: '8 70 84 50',  d: 'M10 112C30 120 70 120 90 112C86 106 80 104 72 104L68 80C62 72 38 72 32 80L28 104C20 104 14 106 10 112Z', x: 'M29 98H71' },
+  beanie:  { label: 'Beanie',    box: '20 46 60 74', d: 'M22 118V96C22 70 36 60 50 60C64 60 78 70 78 96V118ZM44 55A6 6 0 1 0 56 55A6 6 0 1 0 44 55Z', x: 'M22 104H78' },
+};
+const HOOK = 'M50 24V15C50 11 55 10 55 5.5C55 2 52.5 .5 50 .5C47.5 .5 45.5 2.5 45.5 5';
+const HANGER = HOOK + 'M50 24L16 36H84Z';
+const CLIP_HANGER = HOOK + 'M50 24L28 31M50 24L72 31M24 31H76';
+
+const CATS = [
+  { id: 'tops',    name: 'Tops',        hung: true,  kinds: ['tee', 'shirt', 'sweater'] },
+  { id: 'outer',   name: 'Outerwear',   hung: true,  kinds: ['jacket'] },
+  { id: 'dresses', name: 'Dresses',     hung: true,  kinds: ['dress'] },
+  { id: 'bottoms', name: 'Bottoms',     hung: true,  kinds: ['pants', 'shorts', 'skirt'] },
+  { id: 'shoes',   name: 'Shoes',       hung: false, kinds: ['sneaker', 'boot'] },
+  { id: 'acc',     name: 'Accessories', hung: false, kinds: ['bag', 'hat', 'beanie'] },
+];
+const CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
+
+// [name, category, kind, color, seasons, times worn, days since last worn]
+const SEED = [
+  ['White tee',        'tops',    'tee',     'white',    ['Spring', 'Summer', 'Fall'], 34, 2],
+  ['Oxford shirt',     'tops',    'shirt',   'sky',      ['Spring', 'Fall', 'Winter'], 18, 6],
+  ['Navy crewneck',    'tops',    'sweater', 'navy',     ['Fall', 'Winter'], 21, 12],
+  ['Black tee',        'tops',    'tee',     'black',    SEASONS, 40, 4],
+  ['Rust flannel',     'tops',    'shirt',   'rust',     ['Fall', 'Winter'], 9, 30],
+  ['Mustard cardigan', 'tops',    'sweater', 'mustard',  ['Fall', 'Winter'], 2, 210],
+  ['Blush linen tee',  'tops',    'tee',     'blush',    ['Spring', 'Summer'], 3, 140],
+  ['Denim jacket',     'outer',   'jacket',  'denim',    ['Spring', 'Fall'], 15, 20],
+  ['Wool overcoat',    'outer',   'jacket',  'gray',     ['Fall', 'Winter'], 11, 8],
+  ['Olive field jacket','outer',  'jacket',  'olive',    ['Spring', 'Fall'], 6, 100],
+  ['Navy wrap dress',  'dresses', 'dress',   'navy',     ['Spring', 'Summer'], 7, 60],
+  ['Green slip dress', 'dresses', 'dress',   'forest',   ['Summer', 'Fall'], 4, 120],
+  ['Dark wash jeans',  'bottoms', 'pants',   'indigo',   SEASONS, 52, 1],
+  ['Khaki chinos',     'bottoms', 'pants',   'khaki',    ['Spring', 'Summer', 'Fall'], 19, 9],
+  ['Black trousers',   'bottoms', 'pants',   'black',    SEASONS, 14, 15],
+  ['Denim shorts',     'bottoms', 'shorts',  'denim',    ['Summer'], 10, 70],
+  ['Plum midi skirt',  'bottoms', 'skirt',   'plum',     ['Spring', 'Fall'], 1, 260],
+  ['White sneakers',   'shoes',   'sneaker', 'white',    SEASONS, 60, 1],
+  ['Leather boots',    'shoes',   'boot',    'brown',    ['Fall', 'Winter'], 25, 3],
+  ['Gray runners',     'shoes',   'sneaker', 'gray',     SEASONS, 30, 5],
+  ['Canvas tote',      'acc',     'bag',     'cream',    SEASONS, 22, 7],
+  ['Wool beanie',      'acc',     'beanie',  'burgundy', ['Fall', 'Winter'], 5, 18],
+  ['Straw sun hat',    'acc',     'hat',     'khaki',    ['Summer'], 2, 95],
+];
+
+function seed() {
+  const now = Date.now();
+  const items = SEED.map(([name, cat, kind, color, seasons, worn, days], n) => ({
+    id: 'i' + (n + 1), name, cat, kind, color, seasons: [...seasons], worn,
+    last: now - days * DAY, added: now - 400 * DAY,
+  }));
+  return {
+    items,
+    outfits: [
+      { id: 'o1', items: ['i8', 'i1', 'i13', 'i18'], saved: now - 12 * DAY },
+      { id: 'o2', items: ['i3', 'i14', 'i19'], saved: now - 30 * DAY },
+    ],
+    donated: 0,
+    nextId: items.length + 1,
+  };
+}
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY));
+    if (s && Array.isArray(s.items)) return s;
+  } catch (e) { /* storage unavailable */ }
+  return null;
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
+}
+
+let state = load() || seed();
+let filter = 'All';
+let pick = [];
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const byId = id => state.items.find(i => i.id === id);
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+const pickOne = arr => arr[Math.floor(Math.random() * arr.length)];
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function seasonNow(d = new Date()) {
+  const m = d.getMonth();
+  if (m >= 2 && m <= 4) return 'Spring';
+  if (m >= 5 && m <= 7) return 'Summer';
+  if (m >= 8 && m <= 10) return 'Fall';
+  return 'Winter';
+}
+function startOfDay(t) { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); }
+function daysSince(t) { return Math.round((startOfDay(Date.now()) - startOfDay(t)) / DAY); }
+function ago(t) {
+  if (!t) return 'Not yet';
+  const d = daysSince(t);
+  if (d <= 0) return 'Today';
+  if (d === 1) return 'Yesterday';
+  if (d < 45) return `${d} days ago`;
+  if (d < 365) return `${Math.round(d / 30)} months ago`;
+  return 'Over a year ago';
+}
+const wornToday = i => i.last && daysSince(i.last) <= 0;
+const seasonsText = s => s.length === SEASONS.length ? 'All year' : s.join(', ');
+const shortDate = t => new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+// opts.flat draws the piece off its hanger, cropped and scaled to fit opts.w x opts.h
+function garment(item, opts = {}) {
+  const k = KINDS[item.kind];
+  const hex = COLORS[item.color].hex;
+  let vb = '0 0 100 120', w = opts.w || 84, h = opts.h || 100;
+  if (opts.flat) {
+    vb = k.box;
+    const [, , bw, bh] = k.box.split(' ').map(Number);
+    const s = Math.min(opts.w / bw, opts.h / bh);
+    w = Math.round(bw * s);
+    h = Math.round(bh * s);
+  }
+  const hanger = !opts.flat && CAT[item.cat].hung
+    ? `<path class="hanger" d="${k.clip ? CLIP_HANGER : HANGER}"/>` : '';
+  return `<svg class="g" viewBox="${vb}" width="${w}" height="${h}" style="--c:${hex}" aria-hidden="true" focusable="false">${hanger}<path class="body" d="${k.d}"/>${k.x ? `<path class="detail" d="${k.x}"/>` : ''}</svg>`;
+}
+
+function swing(svg) {
+  if (!svg) return;
+  svg.classList.remove('swing');
+  void svg.getBoundingClientRect();
+  svg.classList.add('swing');
+  svg.addEventListener('animationend', () => svg.classList.remove('swing'), { once: true });
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- Closet ---------- */
+
+function renderSeasonChips() {
+  const now = seasonNow();
+  $('#seasonChips').innerHTML = ['All', ...SEASONS].map(s => `
+    <button class="chip" type="button" data-season="${s}" aria-pressed="${s === filter}">
+      ${s}${s === now ? '<span class="now-dot" aria-hidden="true"></span><span class="visually-hidden">(now)</span>' : ''}
+    </button>`).join('');
+}
+
+function pieceHTML(i) {
+  return `<button class="piece" type="button" data-id="${i.id}"><span class="art">${garment(i)}</span><span class="name">${esc(i.name)}</span></button>`;
+}
+
+function renderCloset() {
+  const q = $('#search').value.trim().toLowerCase();
+  const matches = i => {
+    if (filter !== 'All' && !i.seasons.includes(filter)) return false;
+    if (!q) return true;
+    return [i.name, COLORS[i.color].name, KINDS[i.kind].label, CAT[i.cat].name].join(' ').toLowerCase().includes(q);
+  };
+  const shown = state.items.filter(matches);
+  const total = state.items.length;
+  $('#closetCount').textContent = shown.length === total ? plural(total, 'piece') : `${shown.length} of ${plural(total, 'piece')}`;
+
+  const order = i => COLOR_ORDER.indexOf(i.color);
+  const html = CATS.map(c => {
+    const list = shown.filter(i => i.cat === c.id).sort((a, b) => order(a) - order(b));
+    if (!list.length) return '';
+    return `<section class="rail ${c.hung ? 'rail--hang' : 'rail--shelf'}" aria-labelledby="rail-${c.id}">
+      <div class="rail-head"><h2 id="rail-${c.id}">${c.name}</h2><span class="n">${list.length}</span></div>
+      <div class="rail-scroll"><div class="rail-items">${list.map(pieceHTML).join('')}</div></div>
+    </section>`;
+  }).join('');
+
+  $('#rails').innerHTML = html || (total
+    ? '<div class="empty"><p>Nothing matches that search and season.</p><button class="btn small secondary" type="button" data-act="clear">Show everything</button></div>'
+    : '<div class="empty"><p>Your closet is empty. Add your first piece to get started.</p></div>');
+  $$('#seasonChips .chip').forEach(ch => ch.setAttribute('aria-pressed', ch.dataset.season === filter));
+}
+
+function highlight(id) {
+  const p = $(`.piece[data-id="${id}"]`);
+  if (!p) return;
+  p.scrollIntoView({ block: 'center', inline: 'center', behavior: reduceMotion() ? 'auto' : 'smooth' });
+  setTimeout(() => swing($('.g', p)), 300);
+}
+
+/* ---------- Sheet ---------- */
+
+const sheet = $('#sheet');
+const sheetBody = $('#sheetBody');
+const scrim = $('#scrim');
+let lastFocus = null;
+let closeTimer = null;
+
+function openSheet(label, html) {
+  clearTimeout(closeTimer);
+  if (sheet.hidden) lastFocus = document.activeElement;
+  sheet.setAttribute('aria-label', label);
+  sheetBody.innerHTML = html;
+  sheet.hidden = false;
+  scrim.hidden = false;
+  sheet.scrollTop = 0;
+  $('#screens').inert = true;
+  $('#tabbar').inert = true;
+  void sheet.offsetHeight; // commit the closed position so the slide-in transition runs
+  sheet.classList.add('open');
+  scrim.classList.add('open');
+  $('#sheetClose').focus({ preventScroll: true });
+}
+
+function closeSheet() {
+  if (sheet.hidden) return;
+  sheet.classList.remove('open');
+  scrim.classList.remove('open');
+  $('#screens').inert = false;
+  $('#tabbar').inert = false;
+  closeTimer = setTimeout(() => {
+    sheet.hidden = true;
+    scrim.hidden = true;
+    sheetBody.innerHTML = '';
+  }, 300);
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
+}
+
+function itemHTML(it) {
+  const today = wornToday(it);
+  return `<div class="detail-art">${garment(it, { flat: true, w: 200, h: 150 })}</div>
+    <h2 class="detail-name">${esc(it.name)}</h2>
+    <p class="detail-kind">${KINDS[it.kind].label} in ${COLORS[it.color].name.toLowerCase()}</p>
+    <dl class="facts">
+      <div><dt>Worn</dt><dd>${plural(it.worn, 'time')}</dd></div>
+      <div><dt>Last worn</dt><dd>${ago(it.last)}</dd></div>
+      <div><dt>Seasons</dt><dd>${seasonsText(it.seasons)}</dd></div>
+    </dl>
+    <button class="btn primary" type="button" data-act="wear" data-id="${it.id}" ${today ? 'disabled' : ''}>${today ? 'Worn today' : 'Wore it today'}</button>
+    <button class="btn quiet" type="button" data-act="remove" data-id="${it.id}">Remove from closet</button>`;
+}
+
+function openItem(id) {
+  const it = byId(id);
+  if (it) openSheet(it.name, itemHTML(it));
+}
+
+function wear(items) {
+  const now = Date.now();
+  let n = 0;
+  items.forEach(i => {
+    if (!wornToday(i)) { i.worn += 1; i.last = now; n += 1; }
+  });
+  save();
+  return n;
+}
+
+function removeItem(id) {
+  state.items = state.items.filter(i => i.id !== id);
+  state.outfits = state.outfits
+    .map(o => ({ ...o, items: o.items.filter(byId) }))
+    .filter(o => o.items.length >= 2);
+  pick = pick.filter(byId);
+  save();
+}
+
+/* ---------- Add a piece ---------- */
+
+let draft = null;
+
+function addHTML() {
+  return `<h2 class="sheet-title">Add a piece</h2>
+    <div class="add-preview" id="addPreview"></div>
+    <label class="field"><span>Name</span><input id="fName" type="text" maxlength="40" autocomplete="off" placeholder="Gray hoodie"></label>
+    <fieldset><legend>Category</legend><div class="chips wrap">${CATS.map(c => `<button class="chip" type="button" data-cat="${c.id}">${c.name}</button>`).join('')}</div></fieldset>
+    <fieldset id="fKindSet"><legend>Type</legend><div class="chips wrap" id="fKinds"></div></fieldset>
+    <fieldset><legend>Color</legend><div class="swatches">${COLOR_ORDER.map(k => `<button class="swatch" type="button" data-color="${k}" style="--c:${COLORS[k].hex}" aria-label="${COLORS[k].name}" title="${COLORS[k].name}"></button>`).join('')}</div></fieldset>
+    <fieldset><legend>Seasons</legend><div class="chips wrap">${SEASONS.map(s => `<button class="chip" type="button" data-season="${s}">${s}</button>`).join('')}</div></fieldset>
+    <p class="form-error" id="fErr" hidden></p>
+    <button class="btn primary" type="button" data-act="save">Add to closet</button>`;
+}
+
+function refreshAdd(rebuildKinds) {
+  const c = CAT[draft.cat];
+  if (!c.kinds.includes(draft.kind)) draft.kind = c.kinds[0];
+  if (rebuildKinds) {
+    $('#fKindSet').hidden = c.kinds.length < 2;
+    $('#fKinds').innerHTML = c.kinds.map(k => `<button class="chip" type="button" data-kind="${k}">${KINDS[k].label}</button>`).join('');
+  }
+  $$('[data-cat]', sheetBody).forEach(b => b.setAttribute('aria-pressed', b.dataset.cat === draft.cat));
+  $$('[data-kind]', sheetBody).forEach(b => b.setAttribute('aria-pressed', b.dataset.kind === draft.kind));
+  $$('[data-color]', sheetBody).forEach(b => b.setAttribute('aria-pressed', b.dataset.color === draft.color));
+  $$('[data-season]', sheetBody).forEach(b => b.setAttribute('aria-pressed', draft.seasons.includes(b.dataset.season)));
+  const prev = $('#addPreview');
+  prev.className = 'add-preview ' + (c.hung ? 'is-hung' : 'is-shelf');
+  prev.innerHTML = garment(draft, { w: 100, h: 120 });
+}
+
+function openAdd() {
+  draft = { cat: 'tops', kind: 'tee', color: 'navy', seasons: [seasonNow()] };
+  openSheet('Add a piece', addHTML());
+  refreshAdd(true);
+}
+
+function showFormError(msg) {
+  const e = $('#fErr');
+  e.textContent = msg;
+  e.hidden = false;
+}
+
+function saveDraft() {
+  const name = $('#fName').value.trim();
+  if (!name) {
+    showFormError('Add a name so you can find it later.');
+    $('#fName').focus();
+    return;
+  }
+  if (!draft.seasons.length) {
+    showFormError('Pick at least one season.');
+    return;
+  }
+  const it = {
+    id: 'i' + state.nextId++, name, cat: draft.cat, kind: draft.kind, color: draft.color,
+    seasons: SEASONS.filter(s => draft.seasons.includes(s)), worn: 0, last: null, added: Date.now(),
+  };
+  state.items.push(it);
+  save();
+  if (filter !== 'All' && !it.seasons.includes(filter)) filter = 'All';
+  $('#search').value = '';
+  closeSheet();
+  renderAll();
+  showTab('closet');
+  toast('Added to closet');
+  highlight(it.id);
+}
+
+sheetBody.addEventListener('input', e => {
+  if (e.target.id === 'fName') $('#fErr').hidden = true;
+});
+
+sheetBody.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const { act } = b.dataset;
+
+  if (act === 'wear') {
+    const it = byId(b.dataset.id);
+    wear([it]);
+    sheetBody.innerHTML = itemHTML(it);
+    renderAll();
+    toast('Marked as worn today');
+  } else if (act === 'remove') {
+    if (b.dataset.confirm !== 'yes') {
+      b.dataset.confirm = 'yes';
+      b.textContent = 'Tap again to remove';
+      setTimeout(() => {
+        if (!b.isConnected) return;
+        b.dataset.confirm = '';
+        b.textContent = 'Remove from closet';
+      }, 3000);
+      return;
+    }
+    const it = byId(b.dataset.id);
+    removeItem(it.id);
+    closeSheet();
+    renderAll();
+    toast(`Removed ${it.name}`);
+  } else if (act === 'save') {
+    saveDraft();
+  } else if (b.dataset.cat) {
+    draft.cat = b.dataset.cat;
+    refreshAdd(true);
+  } else if (b.dataset.kind) {
+    draft.kind = b.dataset.kind;
+    refreshAdd(false);
+  } else if (b.dataset.color) {
+    draft.color = b.dataset.color;
+    refreshAdd(false);
+  } else if (b.dataset.season) {
+    const s = b.dataset.season;
+    draft.seasons = draft.seasons.includes(s) ? draft.seasons.filter(x => x !== s) : [...draft.seasons, s];
+    $('#fErr').hidden = true;
+    refreshAdd(false);
+  }
+});
+
+/* ---------- Outfits ---------- */
+
+function shuffleOutfit() {
+  const season = seasonNow();
+  const pool = cat => state.items.filter(i => i.cat === cat && i.seasons.includes(season));
+  const tops = pool('tops'), bottoms = pool('bottoms'), dresses = pool('dresses');
+  const shoes = pool('shoes'), outer = pool('outer');
+  const ids = [];
+  const canSeparates = tops.length && bottoms.length;
+  if (dresses.length && (!canSeparates || Math.random() < 0.3)) ids.push(pickOne(dresses).id);
+  else if (canSeparates) ids.push(pickOne(tops).id, pickOne(bottoms).id);
+  if (ids.length && shoes.length) ids.push(pickOne(shoes).id);
+  if (ids.length && outer.length && (season === 'Fall' || season === 'Winter') && Math.random() < 0.6) {
+    ids.unshift(pickOne(outer).id);
+  }
+  pick = ids;
+}
+
+function renderOutfits(deal = false) {
+  const season = seasonNow();
+  $('#outfitsSub').textContent = `Picks for ${season.toLowerCase()}`;
+
+  const items = pick.map(byId).filter(Boolean);
+  const lay = $('#lay');
+  if (!items.length) {
+    lay.innerHTML = `<p class="lay-empty">Add a top, bottoms and shoes for ${season.toLowerCase()} to get outfit picks.</p>`;
+    $('#pickNames').textContent = '';
+  } else {
+    const outer = items.find(i => i.cat === 'outer');
+    const rest = items.filter(i => i !== outer);
+    const size = i => i.cat === 'shoes' ? { w: 96, h: 44 } : i.cat === 'bottoms' ? { w: 96, h: 104 } : { w: 118, h: 110 };
+    const fig = (i, n) => `<button class="lay-piece${deal ? ' dealt' : ''}" type="button" data-id="${i.id}" style="animation-delay:${n * 70}ms" aria-label="${esc(i.name)}">${garment(i, { flat: true, ...size(i) })}</button>`;
+    lay.innerHTML = (outer ? `<div class="lay-col">${fig(outer, 0)}</div>` : '')
+      + `<div class="lay-col">${rest.map((i, n) => fig(i, n + 1)).join('')}</div>`;
+    $('#pickNames').textContent = items.map(i => i.name).join(', ');
+  }
+  $('#saveOutfitBtn').disabled = !items.length;
+
+  const list = $('#outfitList');
+  if (!state.outfits.length) {
+    list.innerHTML = '<li class="list-empty">Outfits you save show up here.</li>';
+    return;
+  }
+  list.innerHTML = state.outfits.slice().sort((a, b) => b.saved - a.saved).map(o => {
+    const pieces = o.items.map(byId).filter(Boolean);
+    return `<li>
+      <div class="row-text">
+        <div class="mini">${pieces.map(i => garment(i, { flat: true, w: 40, h: 40 })).join('')}</div>
+        <span class="row-sub">${esc(pieces.map(i => i.name).join(', '))}</span>
+      </div>
+      <div class="row-actions">
+        <button class="btn small secondary" type="button" data-wear-outfit="${o.id}">Wear</button>
+        <button class="icon-btn" type="button" data-delete-outfit="${o.id}" aria-label="Delete outfit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 12.5h9l1-12.5"/></svg>
+        </button>
+      </div>
+    </li>`;
+  }).join('');
+}
+
+$('#shuffleBtn').addEventListener('click', () => {
+  shuffleOutfit();
+  renderOutfits(true);
+});
+
+$('#saveOutfitBtn').addEventListener('click', () => {
+  if (!pick.length) return;
+  const key = [...pick].sort().join();
+  if (state.outfits.some(o => [...o.items].sort().join() === key)) {
+    toast('That outfit is already saved');
+    return;
+  }
+  state.outfits.push({ id: 'o' + Date.now(), items: [...pick], saved: Date.now() });
+  save();
+  renderOutfits();
+  toast('Outfit saved');
+});
+
+$('#lay').addEventListener('click', e => {
+  const p = e.target.closest('.lay-piece');
+  if (p) openItem(p.dataset.id);
+});
+
+$('#outfitList').addEventListener('click', e => {
+  const w = e.target.closest('[data-wear-outfit]');
+  const d = e.target.closest('[data-delete-outfit]');
+  if (w) {
+    const o = state.outfits.find(x => x.id === w.dataset.wearOutfit);
+    const n = wear(o.items.map(byId).filter(Boolean));
+    renderAll();
+    toast(n ? `Marked ${plural(n, 'piece')} as worn today` : 'Already worn today');
+  } else if (d) {
+    state.outfits = state.outfits.filter(x => x.id !== d.dataset.deleteOutfit);
+    save();
+    renderOutfits();
+    toast('Outfit deleted');
+  }
+});
+
+/* ---------- Unworn ---------- */
+
+function unwornItems() {
+  const cutoff = Date.now() - UNWORN_DAYS * DAY;
+  const lastTouch = i => Math.max(i.last || 0, i.added || 0, i.kept || 0);
+  return state.items.filter(i => lastTouch(i) < cutoff).sort((a, b) => lastTouch(a) - lastTouch(b));
+}
+
+function renderUnworn() {
+  const items = unwornItems();
+  const badge = $('#unwornBadge');
+  badge.hidden = !items.length;
+  badge.textContent = items.length;
+
+  $('#bagNote').hidden = !state.donated;
+  $('#bagText').textContent = `${plural(state.donated, 'piece')} in your donate bag`;
+
+  $('#unwornList').innerHTML = items.length ? items.map(i => `<li>
+      <div class="thumb">${garment(i, { flat: true, w: 38, h: 38 })}</div>
+      <div class="row-text">
+        <span class="row-title">${esc(i.name)}</span>
+        <span class="row-sub">${i.last ? `Last worn ${ago(i.last).toLowerCase()}` : 'Not worn since you added it'}</span>
+      </div>
+      <div class="row-actions">
+        <button class="btn small secondary" type="button" data-keep="${i.id}">Keep</button>
+        <button class="btn small primary" type="button" data-donate="${i.id}">Donate</button>
+      </div>
+    </li>`).join('')
+    : '<li class="list-empty">Everything in your closet has been worn in the last 3 months.</li>';
+}
+
+$('#unwornList').addEventListener('click', e => {
+  const k = e.target.closest('[data-keep]');
+  const d = e.target.closest('[data-donate]');
+  if (k) {
+    const it = byId(k.dataset.keep);
+    it.kept = Date.now();
+    save();
+    renderAll();
+    toast(`Keeping ${it.name}`);
+  } else if (d) {
+    const it = byId(d.dataset.donate);
+    removeItem(it.id);
+    state.donated += 1;
+    save();
+    renderAll();
+    toast(`${it.name} is in the donate bag`);
+  }
+});
+
+/* ---------- Tabs and wiring ---------- */
+
+function renderAll() {
+  renderCloset();
+  renderOutfits();
+  renderUnworn();
+}
+
+function showTab(name) {
+  $$('.tab').forEach(t => t.setAttribute('aria-current', t.dataset.tab === name ? 'page' : 'false'));
+  $$('.screen').forEach(s => { s.hidden = s.dataset.screen !== name; });
+}
+
+$('#tabbar').addEventListener('click', e => {
+  const t = e.target.closest('.tab');
+  if (t) showTab(t.dataset.tab);
+});
+
+$('#rails').addEventListener('click', e => {
+  if (e.target.closest('[data-act="clear"]')) {
+    filter = 'All';
+    $('#search').value = '';
+    renderCloset();
+    return;
+  }
+  const p = e.target.closest('.piece');
+  if (!p) return;
+  const it = byId(p.dataset.id);
+  if (!it) return;
+  if (CAT[it.cat].hung && !reduceMotion()) {
+    swing($('.g', p));
+    setTimeout(() => openItem(it.id), 180);
+  } else {
+    openItem(it.id);
+  }
+});
+
+$('#seasonChips').addEventListener('click', e => {
+  const c = e.target.closest('.chip');
+  if (!c) return;
+  filter = c.dataset.season;
+  renderCloset();
+});
+
+$('#search').addEventListener('input', renderCloset);
+$('#addBtn').addEventListener('click', openAdd);
+$('#sheetClose').addEventListener('click', closeSheet);
+scrim.addEventListener('click', closeSheet);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSheet();
+});
+
+$('#resetBtn').addEventListener('click', () => {
+  state = seed();
+  filter = 'All';
+  $('#search').value = '';
+  save();
+  shuffleOutfit();
+  renderAll();
+  toast('Demo reset');
+});
+
+$('#versionLabel').textContent = `Closet mockup v${VERSION}`;
+renderSeasonChips();
+shuffleOutfit();
+renderAll();
+})();
+</script>
+</body>
+</html>
